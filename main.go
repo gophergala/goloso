@@ -43,17 +43,15 @@ Usage:
 
 	if *channel == "" {
 		log.Fatalln("Err: missing channel")
-		os.Exit(1)
 	}
 
 	if *topic == "" {
-		log.Fatalln("Err: missing topic")
-		os.Exit(1)
+		log.Fatalln("Err: missing topic. \"--topic is required\"")
 	}
 
 	var (
-		reader *nsq.Consumer
-		err    error
+		consumer *nsq.Consumer
+		err      error
 	)
 
 	lookup := "localhost:4161"
@@ -63,21 +61,19 @@ Usage:
 	conf.MaxInFlight = 1000
 
 	// setup nsq consumer
-
-	reader, err = nsq.NewConsumer(*topic, *channel, conf)
+	consumer, err = nsq.NewConsumer(*topic, *channel, conf)
 	if err != nil {
 		log.Fatalln("Err: can't consume", err)
 	}
 
-	reader.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		log.Printf("Message; %v", message)
 		return nil
 	}))
 
-	err = reader.ConnectToNSQLookupd(lookup)
+	err = consumer.ConnectToNSQLookupd(lookup)
 	if err != nil {
 		log.Fatalln("Err: can't connect to lookupd", err)
-
 	}
 
 }
