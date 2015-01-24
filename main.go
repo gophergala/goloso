@@ -56,12 +56,15 @@ Usage:
 		err    error
 	)
 
+	lookup := "localhost:4161"
+
 	// setup nsq config
 	conf := nsq.NewConfig()
 	conf.MaxInFlight = 1000
 
 	// setup nsq consumer
-	reader, err = nsq.NewConsumer(*channel, *topic, conf)
+
+	reader, err = nsq.NewConsumer(*topic, *channel, conf)
 	if err != nil {
 		log.Fatalln("Err: can't consume", err)
 	}
@@ -70,5 +73,11 @@ Usage:
 		log.Printf("Message; %v", message)
 		return nil
 	}))
+
+	err = reader.ConnectToNSQLookupd(lookup)
+	if err != nil {
+		log.Fatalln("Err: can't connect to lookupd", err)
+
+	}
 
 }
