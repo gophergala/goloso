@@ -9,6 +9,7 @@ import (
 	"syscall"
 
 	"github.com/bitly/go-nsq"
+	"github.com/boltdb/bolt"
 )
 
 var (
@@ -29,7 +30,7 @@ type NSQMessage struct {
 */
 
 func main() {
-	fmt.Println("Goloso")
+	fmt.Println("Goloso.. starting")
 
 	flag.Parse()
 
@@ -58,7 +59,28 @@ Usage:
 		consumer *nsq.Consumer
 		err      error
 	)
+	/* connect to database */
+	fmt.Print("Connecting to bolt...")
+	// setup bolt db connection
+	db, err := bolt.Open("my.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
 
+	fmt.Println("done")
+	// create buquete
+	db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucket([]byte("Goloso"))
+		if err != nil {
+			return fmt.Errorf("Create bucket: %s", err)
+			fmt.Println("Goloso exists")
+		}
+
+		fmt.Println("Goloso bucket created")
+
+		return nil
+	})
 	lookup := "localhost:4161"
 
 	// setup nsq config
@@ -73,6 +95,15 @@ Usage:
 
 	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
 		log.Printf("Message: %s", message)
+
+		// json_decode && store in KV
+
+		// db.Update(func(tx *bolt.Tx) error {
+		// 	b := tx.Bucket([]byte("Goloso"))
+		// 	err := b.Put([]byte("answer"), []byte("42"))
+		// 	return err
+		// })
+
 		return nil
 	}))
 
