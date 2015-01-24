@@ -18,7 +18,9 @@ else
   os=unknown
 fi
 
-payload="{\"event\":\"bootstrap\",\"uuid\":\"${uuid}\",\"instance\":{\"id\":\"${instance_id}\",\"ipaddress\":\"${ip_address}\",\"os\":\"${os}\"}}"
+# payload="{\"event\":\"bootstrap\",\"uuid\":\"${uuid}\",\"instance\":{\"id\":\"${instance_id}\",\"ipaddress\":\"${ip_address}\",\"os\":\"${os}\"}}"
+payload="{ \"event\":\"bootstrap\",\"uuid\":\"${uuid}\",\"instanceid\":\"${instance_id}\",\"ipaddress\":\"${ip_address}\",\"os\":\"${os}\"}"
+
 
 ok=""
 for count in 1 2 3 4 5 6 7 8 9 10 ; do
