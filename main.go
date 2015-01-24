@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/bitly/go-nsq"
 )
@@ -49,6 +51,9 @@ Usage:
 		log.Fatalln("Err: missing topic. \"--topic is required\"")
 	}
 
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
 	var (
 		consumer *nsq.Consumer
 		err      error
@@ -67,7 +72,7 @@ Usage:
 	}
 
 	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-		log.Printf("Message; %v", message)
+		log.Printf("Message: %s", message)
 		return nil
 	}))
 
@@ -76,4 +81,12 @@ Usage:
 		log.Fatalln("Err: can't connect to lookupd", err)
 	}
 
+	for {
+		select {
+		case <-consumer.StopChan:
+			return
+		case <-sigChan:
+			consumer.Stop()
+		}
+	}
 }
