@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"log"
 	"os"
+
+	"github.com/bitly/go-nsq"
 )
 
 var (
@@ -37,5 +39,25 @@ Usage:
 		log.Fatalln("Err: missing topic")
 		os.Exit(1)
 	}
+
+	var (
+		reader *nsq.Consumer
+		err    error
+	)
+
+	// setup nsq config
+	conf := nsq.NewConfig()
+	conf.MaxInFlight = 1000
+
+	// setup nsq consumer
+	reader, err = nsq.NewConsumer(*channel, *topic, conf)
+	if err != nil {
+		log.Fatalln("Err: can't consume", err)
+	}
+
+	reader.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
+		log.Printf("Message; %v", message)
+		return nil
+	}))
 
 }
