@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -19,15 +20,13 @@ var (
 )
 
 // bootstrap event struct
-/*
 type NSQMessage struct {
-	Event      []string `json:event`      // event type
-	Uuid       []string `json:uuid`       // event uuid
-	InstanceId []string `json:instanceid` // instance id
-	IpAddress  []string `json:ipaddress`  // ipaddess
-	Os         []string `json:os`         // operaring system
+	Event      string `json:event`      // event type
+	Uuid       string `json:uuid`       // event uuid
+	InstanceId string `json:instanceid` // instance id
+	IpAddress  string `json:ipaddress`  // ipaddess
+	Os         string `json:os`         // operaring system
 }
-*/
 
 func main() {
 	fmt.Println("Goloso.. starting")
@@ -101,7 +100,22 @@ Usage:
 		log.Printf("Message: %s", message)
 
 		// json_decode && store in KV
+		// var m NSQMessage
+		m := NSQMessage{}
 
+		mess := `{"event":"bootstrap", "uuid": "XXXX_-XXXX--XXX", "instanceid": "i-12312", "ipaddress": "127.0.0.1", "os":"osx"}`
+
+		err := json.Unmarshal([]byte(mess), &m)
+
+		fmt.Println("Event: ", m.Event)
+		fmt.Println("uuid: ", m.Uuid)
+		fmt.Println("instanceid: ", m.InstanceId)
+		fmt.Println("ipaddress: ", m.IpAddress)
+		fmt.Println("os: ", m.Os)
+
+		if err != nil {
+			log.Fatalln("Err: can't unmarshall message. \n>", err)
+		}
 		// db.Update(func(tx *bolt.Tx) error {
 		// 	b := tx.Bucket([]byte("Goloso"))
 		// 	err := b.Put([]byte("answer"), []byte("42"))
