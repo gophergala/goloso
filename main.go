@@ -15,6 +15,17 @@ var (
 	channel  = flag.String("channel", "", "NSQ channel")
 )
 
+// bootstrap event struct
+/*
+type NSQMessage struct {
+	Event      []string `json:event`      // event type
+	Uuid       []string `json:uuid`       // event uuid
+	InstanceId []string `json:instanceid` // instance id
+	IpAddress  []string `json:ipaddress`  // ipaddess
+	Os         []string `json:os`         // operaring system
+}
+*/
+
 func main() {
 	fmt.Println("Goloso")
 
