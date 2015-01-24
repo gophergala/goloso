@@ -59,8 +59,10 @@ Usage:
 		consumer *nsq.Consumer
 		err      error
 	)
-	/* connect to database */
+
+	// connect to database
 	fmt.Print("Connecting to bolt...")
+
 	// setup bolt db connection
 	db, err := bolt.Open("my.db", 0600, nil)
 	if err != nil {
@@ -69,6 +71,7 @@ Usage:
 	defer db.Close()
 
 	fmt.Println("done")
+
 	// create buquete
 	db.Update(func(tx *bolt.Tx) error {
 		_, err := tx.CreateBucket([]byte("Goloso"))
@@ -81,6 +84,7 @@ Usage:
 
 		return nil
 	})
+
 	lookup := "localhost:4161"
 
 	// setup nsq config
