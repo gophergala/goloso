@@ -9,13 +9,15 @@ import (
 	"syscall"
 
 	"github.com/bitly/go-nsq"
+	"github.com/bitly/nsq/util"
 	"github.com/boltdb/bolt"
 )
 
 var (
-	showHelp = flag.Bool("help", false, "print help")
-	topic    = flag.String("topic", "", "NSQ topic")
-	channel  = flag.String("channel", "", "NSQ channel")
+	showHelp    = flag.Bool("help", false, "print help")
+	showVersion = flag.Bool("version", false, "print version")
+	topic       = flag.String("topic", "", "NSQ topic")
+	channel     = flag.String("channel", "", "NSQ channel")
 )
 
 // bootstrap event struct
@@ -30,7 +32,6 @@ type NSQMessage struct {
 */
 
 func main() {
-	fmt.Println("Goloso.. starting")
 
 	flag.Parse()
 
@@ -38,11 +39,19 @@ func main() {
 		fmt.Println(`
 Usage:
     goloso --help
+    goloso --version
 
     goloso --channel "orc.sys.events" --topic "ec2"
 `)
 		os.Exit(0)
 	}
+
+	if *showVersion {
+		fmt.Printf("Goloso v%s\n", util.BINARY_VERSION)
+		os.Exit(0)
+	}
+
+	fmt.Println("Goloso.. starting")
 
 	if *channel == "" {
 		log.Fatalln("Err: missing channel")
