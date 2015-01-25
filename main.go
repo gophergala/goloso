@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/bitly/go-nsq"
@@ -31,7 +33,52 @@ type NSQMessage struct {
 }
 */
 
+// cmdline struct which will call Ansible playbook
+type Worker struct {
+	Command string
+	Args    string
+	Output  chan string
+}
+
+// the cmdline runner
+func (cmd *Worker) Run() {
+	out, err := exec.Command(cmd.Command, cmd.Args).Output()
+	if err != nil {
+		log.Fatalln("Err: command execution failed!", err)
+	}
+
+	cmd.Output <- string(out)
+}
+
+// shity output
+func Collect(c chan string) {
+	for {
+		msg := <-c
+		fmt.Printf("The command result is %s\n", msg)
+	}
+}
+
+// not void but near... well, golang super newbies here...
+// shit gets printed but never stops :)
+// looks like I am missing a os.Interrupt somewhere...
+func loop(inChan chan *nsq.Message) {
+
+	// c := make(chan string)
+
+	for msg := range inChan {
+
+		fmt.Println(string(msg.Body) + "\n")
+
+		// ansible := &Worker{Command: "echo", Args: "hi", Output: c}
+		// go ansible.Run()
+
+		msg.Finish()
+	}
+	// go Collect(c)
+}
+
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
 
 	flag.Parse()
 
@@ -62,7 +109,7 @@ Usage:
 	}
 
 	sigChan := make(chan os.Signal, 1)
-	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	var (
 		consumer *nsq.Consumer
@@ -94,8 +141,6 @@ Usage:
 		return nil
 	})
 
-	lookup := "localhost:4161"
-
 	// setup nsq config
 	conf := nsq.NewConfig()
 	conf.MaxInFlight = 1000
@@ -106,8 +151,11 @@ Usage:
 		log.Fatalln("Err: can't consume", err)
 	}
 
+	inChan := make(chan *nsq.Message)
+
 	consumer.AddHandler(nsq.HandlerFunc(func(message *nsq.Message) error {
-		log.Printf("Message: %s", message)
+		inChan <- message
+		// log.Printf("Message: %s", message)
 
 		// json_decode && store in KV
 
@@ -120,17 +168,26 @@ Usage:
 		return nil
 	}))
 
+	// someday this will be set with consumerOpts
+	lookup := "localhost:4161"
+
 	err = consumer.ConnectToNSQLookupd(lookup)
 	if err != nil {
 		log.Fatalln("Err: can't connect to lookupd", err)
 	}
 
-	for {
-		select {
-		case <-consumer.StopChan:
-			return
-		case <-sigChan:
-			consumer.Stop()
+	// the code below actually works but I think we need to put goroutines here instead
+	/*
+		for {
+			select {
+			case <-consumer.StopChan:
+				return
+			case <-sigChan:
+				consumer.Stop()
+			}
 		}
-	}
+	*/
+
+	go loop(inChan)
+	<-consumer.StopChan
 }
