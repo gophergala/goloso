@@ -27,6 +27,7 @@ The system has three main components.
 ## Goloso Dependencies
 
     go get github.com/bitly/go-nsq
+    go get github.com/bitly/nsq/util
     go get github.com/boltdb/bolt
 
 ## Install NSQ
