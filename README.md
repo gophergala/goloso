@@ -17,7 +17,7 @@ The system has three main components.
 
 * NSQ, the message broker.
 
-* Goloso, conuming messages from NSQ and running Ansible playbooks.
+* Goloso, consuming messages from NSQ and running Ansible playbooks.
 
 
 ## Install Goloso
